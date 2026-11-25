@@ -1,0 +1,328 @@
+// ============================================================================
+// TIỆM TẠP HÓA KÝ ỨC - ĐOẠN CODE HOÀN CHỈNH + CHƯƠNG TRÌNH THỬ NGHIỆM
+// ============================================================================
+
+const CATEGORIES = [
+  { id: 'drinks', name: '🥤 Nước Chai' },
+  { id: 'snacks', name: '🍬 Bánh Kẹo' },
+  { id: 'kitchen', name: '🍜 Đồ Bếp' },
+  { id: 'sundries', name: '🪥 Lặt Vặt' },
+  { id: 'household', name: '🧹 Gia Dụng' }
+];
+
+const ITEMS = [
+  { id: 'cam_ep', cat: 'drinks', name: 'Nước Cam Chai', cost: 6, price: 10 },
+  { id: 'tang_luc', cat: 'drinks', name: 'Tăng Lực Chai', cost: 7, price: 12 },
+  { id: 'tra_xanh', cat: 'drinks', name: 'Trà Xanh Chai', cost: 7, price: 11 },
+  { id: 'nuoc_khoang', cat: 'drinks', name: 'Nước Khoáng', cost: 3, price: 6 },
+
+  { id: 'keo_keo', cat: 'snacks', name: 'Kẹo Kéo', cost: 2, price: 5 },
+  { id: 'banh_que', cat: 'snacks', name: 'Bánh Quế', cost: 4, price: 7 },
+  { id: 'xi_muoi', cat: 'snacks', name: 'Xí Muội', cost: 3, price: 6 },
+  { id: 'snack_cua', cat: 'snacks', name: 'Snack Cua', cost: 4, price: 8 },
+
+  { id: 'mi_tom', cat: 'kitchen', name: 'Mì Gói', cost: 3, price: 6 },
+  { id: 'nuoc_mam', cat: 'kitchen', name: 'Nước Mắm Nhĩ', cost: 14, price: 22 },
+  { id: 'trung_ga', cat: 'kitchen', name: 'Chục Trứng Gà', cost: 18, price: 28 },
+  { id: 'dau_an', cat: 'kitchen', name: 'Dầu Ăn 1L', cost: 24, price: 36 },
+
+  { id: 'xa_bong', cat: 'sundries', name: 'Xà Bông Cục', cost: 8, price: 14 },
+  { id: 'pin_con_o', cat: 'sundries', name: 'Cặp Pin Con Ó', cost: 5, price: 10 },
+  { id: 'bat_lua', cat: 'sundries', name: 'Bật Lửa', cost: 3, price: 6 },
+  { id: 'vo_oly', cat: 'sundries', name: 'Vở Ô Ly', cost: 6, price: 11 },
+
+  { id: 'bong_den', cat: 'household', name: 'Bóng Đèn LED', cost: 22, price: 35 },
+  { id: 'choi_chit', cat: 'household', name: 'Chổi Chít', cost: 42, price: 65 },
+  { id: 'ro_nhua', cat: 'household', name: 'Rổ Nhựa', cost: 20, price: 32 },
+  { id: 'khan_bep', cat: 'household', name: 'Khăn Lau Bếp', cost: 17, price: 28 }
+];
+
+const MAPS = [
+  { id: 'hem_que', name: 'Hẻm Nhỏ Quê Nhà', rent: 300, tip: 0, bias: 'kitchen' },
+  { id: 'xom_cho', name: 'Ngã Ba Xóm Chợ', rent: 350, tip: 1, bias: 'household' },
+  { id: 'tap_the', name: 'Khu Tập Thể Cũ', rent: 380, tip: 1, bias: 'household' },
+  { id: 'ben_xe', name: 'Bến Xe Liên Tỉnh', rent: 400, tip: 2, bias: 'drinks' },
+  { id: 'truong_hoc', name: 'Khu Trường Học', rent: 500, tip: 2, bias: 'snacks' }
+];
+
+const CUSTOMERS = [
+  { name: 'Bé Tí', age: 'child', tag: 'Trẻ nhỏ', pitch: 1.55, rate: 1.2 },
+  { name: 'Bé Bi', age: 'child', tag: 'Trẻ nhỏ', pitch: 1.5, rate: 1.18 },
+  { name: 'Cậu Nam', age: 'youth', tag: 'Bạn trẻ', pitch: 1.2, rate: 1.08 },
+  { name: 'Bạn Lan', age: 'youth', tag: 'Bạn trẻ', pitch: 1.25, rate: 1.1 },
+  { name: 'Bà Nội', age: 'elder', tag: 'Người già', pitch: 0.75, rate: 0.86 },
+  { name: 'Ông Năm', age: 'elder', tag: 'Người già', pitch: 0.72, rate: 0.85 }
+];
+
+class TiemTapHoa {
+  constructor(shopName = 'Tiệm Tạp Hóa Ký Ức') {
+    this.reset(shopName);
+  }
+
+  reset(shopName = this.state?.shopName || 'Tiệm Tạp Hóa Ký Ức') {
+    const stock = {};
+    ITEMS.forEach(it => { stock[it.id] = 0; }); // Ban đầu chưa bày hàng -> kệ trống (0)
+
+    this.state = {
+      shopName: (shopName || '').trim() || 'Tiệm Tạp Hóa Ký Ức',
+      money: 220, // Vốn khởi đầu 220k
+      debt: 0,
+      stars: 0.0, // Khởi đầu 0 sao
+      day: 1,
+      dayTime: 300,
+      mapId: 'truong_hoc',
+      rentPaid: 0,
+      calmStacks: 0,
+      bonusPatienceNext: 0,
+      isOpen: true,
+      stock,
+      tray: [],
+      order: null,
+      patienceMax: 40,
+      patienceLeft: 40,
+      pendingDash: null,
+      logs: []
+    };
+    this.log(`Khởi tạo "${this.state.shopName}" | Vốn: 220k | Uy tín: 0.0⭐ | Kệ trống (chưa đếm giờ)`);
+  }
+
+  log(msg) {
+    this.state.logs.push(msg);
+    return msg;
+  }
+
+  setShopName(newName) {
+    const clean = (newName || '').trim();
+    if (!clean) return this.log('Tên tiệm không hợp lệ, giữ nguyên tên hiện tại.');
+    this.state.shopName = clean;
+    return this.log(`Đã đặt tên tiệm: "${this.state.shopName}"`);
+  }
+
+  totalShelfStock() {
+    return Object.values(this.state.stock).reduce((a, b) => a + (b || 0), 0);
+  }
+
+  // Giá nhập sỉ rẻ hơn 50% so với giá gốc
+  getWholesaleUnitCost(item) {
+    return Math.max(1, Math.round(item.cost * 0.5));
+  }
+
+  getWholesaleCost(item, qty = 1) {
+    return this.getWholesaleUnitCost(item) * qty;
+  }
+
+  getAvgPrice(catId = null) {
+    const list = catId ? ITEMS.filter(x => x.cat === catId) : ITEMS;
+    if (!list.length) return 0;
+    const avgCost = list.reduce((s, x) => s + x.cost, 0) / list.length;
+    const avgSell = list.reduce((s, x) => s + x.price, 0) / list.length;
+    return {
+      avgCost: +avgCost.toFixed(1),
+      avgSell: +avgSell.toFixed(1),
+      avgProfit: +(avgSell - avgCost).toFixed(1)
+    };
+  }
+
+  getMap() {
+    return MAPS.find(m => m.id === this.state.mapId) || MAPS[4];
+  }
+
+  speak(text, age = 'youth') {
+    const cfg = age === 'shopkeeper'
+      ? { label: 'Chủ tiệm', pitch: 1.05, rate: 1.04 }
+      : (age === 'child'
+        ? { label: 'Trẻ nhỏ', pitch: 1.55, rate: 1.2 }
+        : (age === 'elder'
+          ? { label: 'Người già', pitch: 0.75, rate: 0.86 }
+          : { label: 'Bạn trẻ', pitch: 1.2, rate: 1.08 }));
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'vi-VN';
+        u.pitch = cfg.pitch;
+        u.rate = cfg.rate;
+        window.speechSynthesis.speak(u);
+      } catch (e) {}
+    }
+    return `[Giọng ${cfg.label} | pitch=${cfg.pitch}, rate=${cfg.rate}]: "${text}"`;
+  }
+
+  spawnOrder() {
+    const map = this.getMap();
+    const c = CUSTOMERS[Math.floor(Math.random() * CUSTOMERS.length)];
+    const count = c.age === 'child' ? 1 : (Math.random() < 0.65 ? 1 : 2);
+    const picks = [];
+    for (let i = 0; i < count; i++) {
+      const pool = Math.random() < 0.45 ? ITEMS.filter(x => x.cat === map.bias) : ITEMS;
+      picks.push(pool[Math.floor(Math.random() * pool.length)].id);
+    }
+    const names = picks.map(id => ITEMS.find(x => x.id === id).name);
+    const prefix = c.age === 'elder'
+      ? 'Cho cô/chú lấy '
+      : (c.age === 'child' ? 'Cô/chú ơi, cho con lấy ' : 'Cho mình lấy ');
+    this.state.order = {
+      char: c,
+      items: picks,
+      text: prefix + names.join(', ') + ' nhé!'
+    };
+    this.state.patienceMax = 40 + this.state.bonusPatienceNext;
+    this.state.patienceLeft = this.state.patienceMax;
+    this.state.bonusPatienceNext = 0;
+    return this.state.order;
+  }
+
+  // Khi chưa bày hàng (totalShelfStock() === 0) thì không đếm thời gian
+  tick(seconds = 1) {
+    if (!this.state.isOpen) return { ticked: false, reason: 'Tiệm đang tạm nghỉ' };
+    if (this.totalShelfStock() === 0) {
+      return { ticked: false, reason: 'Chưa bày hàng lên kệ -> tạm dừng đếm giờ' };
+    }
+    if (!this.state.order) this.spawnOrder();
+    const dt = Math.max(0, seconds);
+    this.state.dayTime = Math.max(0, +(this.state.dayTime - dt).toFixed(2));
+    this.state.patienceLeft = Math.max(0, +(this.state.patienceLeft - dt).toFixed(2));
+
+    if (this.state.patienceLeft <= 0) {
+      const leftName = this.state.order.char.name;
+      this.state.stars = Math.max(0, +(this.state.stars - 0.2).toFixed(1));
+      this.clearTray();
+      this.spawnOrder();
+      return { ticked: true, msg: this.log(`${leftName} đợi lâu bỏ đi (-0.2⭐)`) };
+    }
+    return { ticked: true, dayTime: this.state.dayTime, patienceLeft: this.state.patienceLeft };
+  }
+
+  buyAndDisplay(itemId, qty = 3) {
+    const it = ITEMS.find(x => x.id === itemId);
+    if (!it) return { ok: false, msg: 'Không tìm thấy món hàng.' };
+    const cost = this.getWholesaleCost(it, qty);
+    if (this.state.money < cost) {
+      return { ok: false, msg: this.log(`Không đủ vốn (${cost}k) để nhập ${qty} ${it.name}.`) };
+    }
+    const wasEmpty = this.totalShelfStock() === 0;
+    this.state.money -= cost;
+    this.state.stock[itemId] = (this.state.stock[itemId] || 0) + qty;
+    if (wasEmpty && !this.state.order) this.spawnOrder();
+    return { ok: true, msg: this.log(`Nhập +${qty} ${it.name} bày kệ (-${cost}k, giá sỉ -50%). Tồn: ${this.state.stock[itemId]}`) };
+  }
+
+  pickToTray(itemId) {
+    if (this.state.tray.length >= 5) return { ok: false, msg: 'Khay tối đa 5 món.' };
+    if ((this.state.stock[itemId] || 0) <= 0) {
+      return { ok: false, msg: this.log(`Hết ${itemId} trên kệ, cần nhập bày thêm.`) };
+    }
+    this.state.stock[itemId] -= 1;
+    this.state.tray.push(itemId);
+    return { ok: true, msg: this.log(`Đã bỏ ${itemId} vào khay (${this.state.tray.length}/5).`) };
+  }
+
+  clearTray() {
+    this.state.tray.forEach(id => { this.state.stock[id] = (this.state.stock[id] || 0) + 1; });
+    this.state.tray = [];
+  }
+
+  calmDown() {
+    if (this.state.money < 5) return { ok: false, msg: 'Cần 5k để giữ bình tĩnh.' };
+    this.state.money -= 5;
+    this.state.calmStacks += 1;
+    this.state.bonusPatienceNext += 3;
+    return { ok: true, msg: this.log(`Giữ bình tĩnh (-5k) -> khách kế +3s kiên nhẫn.`) };
+  }
+
+  // Lựa chọn quỵt tiền: choice = 1 (rượt theo, tỷ lệ 20% đòi được), choice = 2 (không đuổi theo)
+  handleDineAndDash(amount, customerName = 'Khách vãng lai', choice = 1, rngValue = null) {
+    const roll = typeof rngValue === 'number' ? rngValue : Math.random();
+    if (choice === 1) {
+      if (roll < 0.20) {
+        this.state.money += amount;
+        this.state.stars = Math.min(5.0, +(this.state.stars + 0.4).toFixed(1));
+        return { ok: true, recovered: true, msg: this.log(`[Lựa chọn 1: Rượt theo] Đòi lại thành công +${amount}k từ ${customerName} (+0.4⭐)!`) };
+      }
+      this.state.stars = Math.max(0, +(this.state.stars - 0.2).toFixed(1));
+      return { ok: false, recovered: false, msg: this.log(`[Lựa chọn 1: Rượt theo] Rượt hụt ${customerName}, mất ${amount}k (-0.2⭐).`) };
+    }
+    // choice === 2: không đuổi theo
+    this.state.stars = Math.max(0, +(this.state.stars - 0.2).toFixed(1));
+    this.state.bonusPatienceNext += 3;
+    return { ok: true, chased: false, msg: this.log(`[Lựa chọn 2: Không đuổi theo] Bỏ qua ${customerName} (-0.2⭐, khách sau +3s kiên nhẫn).`) };
+  }
+
+  deliverOrder(forceDash = false) {
+    if (!this.state.order) this.spawnOrder();
+    const order = this.state.order;
+    const req = [...order.items].sort();
+    const tr = [...this.state.tray].sort();
+    if (req.length !== tr.length || !req.every((v, i) => v === tr[i])) {
+      this.state.stars = Math.max(0, +(this.state.stars - 0.2).toFixed(1));
+      return { ok: false, msg: this.log(`Giao sai món cho ${order.char.name}! (-0.2⭐)`) };
+    }
+    const subtotal = this.state.tray.reduce((s, id) => s + ITEMS.find(x => x.id === id).price, 0);
+    this.state.tray = [];
+    this.state.order = null;
+
+    if (forceDash) {
+      return { ok: false, dashPending: true, value: subtotal, customerName: order.char.name };
+    }
+
+    const tip = this.getMap().tip + 2;
+    this.state.money += subtotal + tip;
+    this.state.stars = Math.min(5.0, +(this.state.stars + 0.4).toFixed(1));
+    const shopVoice = this.speak('Cảm ơn quý khách đã ủng hộ tiệm!', 'shopkeeper');
+    const custVoice = this.speak('Đồ tốt lắm, lần sau mình sẽ quay lại!', order.char.age);
+    this.spawnOrder();
+    return {
+      ok: true,
+      msg: this.log(`Giao xong cho ${order.char.name}: +${subtotal + tip}k (tiền bo +${tip}k, uy tín ${this.state.stars.toFixed(1)}⭐)`),
+      shopVoice,
+      custVoice
+    };
+  }
+}
+
+// ============================================================================
+// PHẦN THỬ NGHIỆM TỰ ĐỘNG (CHẠY NGAY ĐỂ KIỂM TRA TỪNG TÍNH NĂNG)
+// ============================================================================
+function runFullTest() {
+  const shop = new TiemTapHoa();
+  console.log('1. Khởi tạo:', {
+    tên: shop.state.shopName,
+    vốn: shop.state.money + 'k',
+    sao: shop.state.stars,
+    tồnKệ: shop.totalShelfStock()
+  });
+
+  console.log('2. Đặt tên tiệm:', shop.setShopName('Tạp Hóa Cô Ba'));
+
+  console.log('3. Kiểm tra kệ trống có đếm giờ không:', shop.tick(10));
+
+  const sampleItem = ITEMS[0]; // Nước Cam Chai: gốc 6k -> sỉ giảm 50% còn 3k/chai
+  console.log('4. Giá sỉ 3 chai Nước Cam (gốc 6k, -50% còn 3k/chai):', shop.getWholesaleCost(sampleItem, 3) + 'k');
+  console.log('5. Nhập bày kệ:', shop.buyAndDisplay(sampleItem.id, 3).msg);
+  console.log('6. Kiểm tra sau khi đã bày hàng có đếm giờ không:', shop.tick(5));
+
+  console.log('7. Giá trung bình toàn tiệm:', shop.getAvgPrice());
+  console.log('8. Giọng đọc theo độ tuổi:', {
+    trẻNhỏ: shop.speak('Cô ơi cho con kẹo kéo!', 'child'),
+    bạnTrẻ: shop.speak('Cho mình chai nước cam.', 'youth'),
+    ngườiGià: shop.speak('Cho bà lấy chục trứng gà.', 'elder')
+  });
+
+  console.log('9. Bình tĩnh (+3s khách kế):', shop.calmDown().msg);
+
+  console.log('10. Thử 2 lựa chọn khi bị quỵt tiền 15k:');
+  console.log(' - Rượt theo & đòi được (roll=0.10 < 0.20):', shop.handleDineAndDash(15, 'Khách A', 1, 0.10).msg);
+  console.log(' - Rượt theo & hụt (roll=0.65 >= 0.20):', shop.handleDineAndDash(15, 'Khách B', 1, 0.65).msg);
+  console.log(' - Không đuổi theo:', shop.handleDineAndDash(15, 'Khách C', 2).msg);
+
+  console.log('11. Trạng thái cuối thử nghiệm:', {
+    tênTiệm: shop.state.shopName,
+    vốn: shop.state.money + 'k',
+    uyTín: shop.state.stars.toFixed(1) + '⭐',
+    giờNgàyCòn: shop.state.dayTime + 's',
+    tồnKệ: shop.totalShelfStock()
+  });
+}
+
+runFullTest();
